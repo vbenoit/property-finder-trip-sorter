@@ -31,12 +31,12 @@
 				</span>
 			</div>
 			<div id="form">
-				<div id="from-container">
+				<div id="from-container" v-if="dataFetched">
 					<select id="from">
 						<option value="from">from</option>
 					</select>
 				</div>
-				<div id="to-container">
+				<div id="to-container" v-if="dataFetched">
 					<select id="to">
 						<option value="to">to</option>
 					</select>
@@ -46,7 +46,7 @@
 					<span id="fastest">Fastest</span>
 				</div>
 				<div id="search">
-					<input type="button" value="Search" id="search-button" />
+					<input type="button" v-bind:disabled="dataFetched" value="Search" id="search-button" />
 				</div>
 			</div>
 			<div id="results">
