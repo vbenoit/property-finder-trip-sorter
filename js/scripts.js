@@ -66,6 +66,8 @@ app = new Vue({
 				this.travelsData = helpers.deepCopy( dealsData );
 				this.travelsDataFetched = true;
 				this.processFormValues();
+				/* for each town we set neighbor town */
+				this.generateMap();
 			}
 
 		},
@@ -129,14 +131,13 @@ app = new Vue({
 			/*  init results paths */
 			this.correctPaths = [];	
 
-			/* for each town we set neighbor town */
-			this.generateMap();
-
 			if ( this.currentDeparture != "0" && this.currentArrival != "0" ) {
 				ways= this.findAllWaysFromAToB( this.currentDeparture, this.currentArrival, []);
 			}
 
 			console.log( this.correctPaths );
+
+			/* 2 - remove duplicates */
 
 			/* 3 - for all these ways we compute all combinaison by train, bus, plane with theirs duration and prices */
 
@@ -173,10 +174,8 @@ app = new Vue({
 			*/
 		findAllWaysFromAToB: function( src, dest, excludedPoints ) {
 
-			srcNeighbors = this.neighboursMap[src];
-
 			//dest in direct src neighbors
-			if ( srcNeighbors.indexOf(dest) >= 0 ) {
+			if ( this.neighboursMap[src].indexOf(dest) >= 0 ) {
 				return [ src, dest ];
 			}
 			//all neighbors excluded
@@ -184,12 +183,16 @@ app = new Vue({
 				return null;
 			}
 
-			for ( var i = 0; i < srcNeighbors.length; i ++ ) {
+			for ( var i = 0; i < this.neighboursMap[src].length; i ++ ) {
 				//current neighbor not excluded
-				if ( excludedPoints.indexOf( srcNeighbors[ i ] ) < 0 ){
-					var path = findAllWaysFromAToB( srcNeighbors[ i ], dest, excludedPoints.concat([src]) );
+				if ( excludedPoints.indexOf( this.neighboursMap[src][ i ] ) < 0  ){
+					var updatedExcludedPoints = 
+						excludedPoints.indexOf(src) < 0 ? excludedPoints.concat([src]) : excludedPoints;
+					var path = this.findAllWaysFromAToB( this.neighboursMap[src][ i ], dest, updatedExcludedPoints );
 					if ( path ){
-						this.correctPaths.push( excludedPoints.concat( path ) );
+						var result = excludedPoints.concat( path );
+						this.correctPaths.push( result );
+						console.log(this.correctPaths.length + ' | ' +  result);
 					}
 				}
 			}
