@@ -8,10 +8,7 @@
 	<meta name="author" content="vbenoit">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	
-	<script defer src="js/material.min.js"></script>	
-	<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:400,500,700,400italic|Material+Icons">
-	<link rel="stylesheet" href="css/material.orange-light_blue.min.css" />
-
+	<script defer src="js/material.min.js"></script>
 	<link rel="stylesheet" href="css/styles.css" />
 	
 
@@ -24,13 +21,29 @@
 	<div id="app" ref="app" >
 		<div id="main-container">
 			<div id="title">
-
+				Trip Sorter
 			</div>
 			<div id="form">
-
+				<div id="from-container">
+					<select id="from">
+						<option value="from">from</option>
+					</select>
+				</div>
+				<div id="to-container">
+					<select id="to">
+						<option value="to">to</option>
+					</select>
+				</div>	
+				<div id="trip-type">
+					<span id="cheapest">Cheapest</span>
+					<span id="fastest">Fastest</span>
+				</div>
+				<div id="search">
+					<input type="button" value="Search" id="search-button" />
+				</div>
 			</div>
 			<div id="results">
-				
+
 			</div>
 		</div>
 	</div>
