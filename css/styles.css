@@ -1,6 +1,16 @@
+body {
+	background-color: grey;
+}
+
 #main-container {
 	width: 80%;
 	margin: auto;
+	background-color: white;
+	padding: 15px;
+}
+
+#currency {
+	float: right;
 }
 
 #trip-type span {
