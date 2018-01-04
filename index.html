@@ -31,14 +31,18 @@
 				</span>
 			</div>
 			<div id="form">
-				<div id="from-container" v-if="dataFetched">
+				<div id="from-container" v-if="travelsDataFetched">
 					<select id="from">
 						<option value="from">from</option>
+						<option v-for="departure in departures" v-bind:value="departure" >{{departure}}
+						</option>
 					</select>
 				</div>
-				<div id="to-container" v-if="dataFetched">
+				<div id="to-container" v-if="travelsDataFetched">
 					<select id="to">
 						<option value="to">to</option>
+						<option v-for="arrival in arrivals" v-bind:value="arrival" >{{arrival}}
+						</option>
 					</select>
 				</div>	
 				<div id="trip-type">
@@ -46,7 +50,7 @@
 					<span id="fastest">Fastest</span>
 				</div>
 				<div id="search">
-					<input type="button" v-bind:disabled="dataFetched" value="Search" id="search-button" />
+					<input type="button" v-bind:disabled="!travelsDataFetched" value="Search" id="search-button" />
 				</div>
 			</div>
 			<div id="results">
