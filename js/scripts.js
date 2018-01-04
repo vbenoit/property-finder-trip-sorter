@@ -9,7 +9,10 @@ app = new Vue({
 			travelsData: {},
 
 			departures: [],
-			arrivals: []
+			arrivals: [],
+
+			currentDeparture: "from",
+			currentArrival: "to"
 		}
 
 	},
