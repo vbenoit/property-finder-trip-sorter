@@ -24,3 +24,7 @@ body {
 	margin: 0;
 	display: inline-block;
 }
+
+#trip-type span.active{
+	background-color: green;
+}
