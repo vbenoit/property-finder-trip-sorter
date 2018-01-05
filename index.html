@@ -23,7 +23,7 @@
 			<div id="title">
 				Trip Sorter
 				<span id="currency" >
-					<select>
+					<select v-model="currency" >
 						<option value="EUR" >€</option>
 						<option value="DOLR" >$</option>
 						<option value="PND" >£</option>
@@ -53,9 +53,17 @@
 					<input type="button" v-on:click="launchSearch()" v-bind:disabled="!travelsDataFetched" value="Search" id="search-button" />
 				</div>
 			</div>
-			<div id="results">
-				<div id="">
-
+			<div id="result" v-cloak>
+				<div id="result-details" v-if="displayResult">
+					<ul>
+						<li class="etap" v-for="directItinerary in processedItinerary" >
+							{{directItinerary.departure}} - {{directItinerary.arrival}} | price: {{directItinerary.discountedCost}}{{currenrySymbols[currency]}} ( {{ directItinerary.cost }}{{currenrySymbols[currency]}}  - {{ directItinerary.discount }}% ), duration: {{directItinerary.duration.h}}h {{directItinerary.duration.m}}min
+						</li>
+						<li class="recap" >Total price: {{processedItinerary.totalCost}}{{currenrySymbols[currency]}} | total duration: {{processedItinerary.durationH}}h {{processedItinerary.durationM}}min</li>
+						<!-- {{directItinerary.departure + '-' + directItinerary.arrival + " | price: " + directItinerary.discountedCost + "("  + directItinerary.cost + " - "+ directItinerary.discount " % ), duration: " + directItinerary.duration.h + "h " + directItinerary.duraration.m + " min" }} -->
+					</ul>
+				</div>
+				<div id="error-message">{{errorMessage}}</div>
 			</div>
 		</div>
 	</div>

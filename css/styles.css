@@ -28,3 +28,7 @@ body {
 #trip-type span.active{
 	background-color: green;
 }
+
+[v-cloak] {
+  display: none;
+}

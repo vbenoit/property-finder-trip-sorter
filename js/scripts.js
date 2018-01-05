@@ -47,6 +47,11 @@ app = new Vue({
 			PRICE_SORT_TYPE: "price",
 			TIME_SORT_TYPE: "time",
 
+			BOTH_VALUES_SET_MSG: "All fields are not set",
+			BOTH_VALUES_DIFFERENT_MSG: "Both location fields are the same",
+
+			errorMessage: "",
+
 			travelsDataFetched: false,
 			travelsUrl: "data/response.json",
 			travelsData: {},
@@ -59,10 +64,22 @@ app = new Vue({
 
 			neighboursMap: [],
 
+			displayResult: false,
+
 			correctPaths: [],
 
 			cheapestTransportations: [],
-			fastestTransportations: []
+			fastestTransportations: [],
+
+			processedItinerary: [],
+
+			currency: "EUR",
+
+			currenrySymbols: {
+				"EUR" : "€",
+				"DOLR" : "$",
+				"PND" : "£"
+			}
 
 		}
 
@@ -154,7 +171,20 @@ app = new Vue({
 			/*  init results paths */
 			this.correctPaths = [];	
 
-			if ( this.currentDeparture != "0" && this.currentArrival != "0" ) {
+			var bothValuesSet = this.currentDeparture != "0" && this.currentArrival != "0";
+			var bothValuesDifferent = ( this.currentDeparture != this.currentArrival );
+
+			if ( !bothValuesSet ) {
+				this.errorMessage = this.BOTH_VALUES_SET_MSG;
+				return;
+			}
+
+			if ( !bothValuesDifferent ) {
+				this.errorMessage = this.BOTH_VALUES_DIFFERENT_MSG;
+				return;
+			}
+
+			if ( bothValuesSet && bothValuesDifferent ) {
 				ways= this.findAllWaysFromAToB( this.currentDeparture, this.currentArrival, []);
 				this.correctPaths = this.correctPaths.concat( [ways] );
 			}
@@ -167,7 +197,10 @@ app = new Vue({
 			console.log( this.correctPaths.length + " - after removing duplicates" );
 
 			/* 3 - we chose the cheapest/fastest */
-			this.processedItinerary = this.getBestItinerary();
+			this.processedItinerary = helpers.deepCopy( this.getBestItinerary() );
+			//Vue.set(app, "processedItinerary", this.getBestItinerary());
+
+			this.displayResult = true;
 			
 			/* processing for additional informations */
 			this.processedItinerary.totalCost = 
@@ -176,17 +209,9 @@ app = new Vue({
 						return totalAmount + currentTransportation.discountedCost 
 					}, 0 );
 
-			debugger;
+			//debugger;
 
 		},
-		/*getBestItinerary: function() {
-			if ( this.sortByPrice ) {
-				return this.computeCheapestItinerary();
-			}
-			else if ( this.sortByTime ) {
-				return this.computeFastestItinerary();
-			}
-		},*/
 		getBestItinerary: function() {
 
 			var smallestAmount = null;
@@ -365,7 +390,7 @@ app = new Vue({
 							result = updatedExcludedPoints.concat( path );
 						}
 						this.correctPaths.push( result );
-						console.log(this.correctPaths.length + ' | ' +  result);
+						//console.log(this.correctPaths.length + ' | ' +  result);
 					}
 				}
 			}
