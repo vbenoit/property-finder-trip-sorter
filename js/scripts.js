@@ -185,7 +185,7 @@ app = new Vue({
 			}
 
 			if ( bothValuesSet && bothValuesDifferent ) {
-				ways= this.findAllWaysFromAToB( this.currentDeparture, this.currentArrival, []);
+				ways= this.findAllPathsFromAToB( this.currentDeparture, this.currentArrival, []);
 				this.correctPaths = this.correctPaths.concat( [ways] );
 			}
 
@@ -209,7 +209,18 @@ app = new Vue({
 						return totalAmount + currentTransportation.discountedCost 
 					}, 0 );
 
-			//debugger;
+			this.processedItinerary.totalTime = 
+				this.processedItinerary.reduce( 
+					function( totalAmount, currentTransportation ) { 
+						return totalAmount + currentTransportation.travelTime 
+					}, 0 );
+
+			this.processedItinerary.duration = {};
+			this.processedItinerary.duration.h = 
+				Math.floor(this.processedItinerary.totalTime / 60 );
+
+			this.processedItinerary.duration.m =
+				Math.round(this.processedItinerary.totalTime % 60 );
 
 		},
 		getBestItinerary: function() {
@@ -228,16 +239,20 @@ app = new Vue({
 
 					if ( this.sortByPrice ) { 
 						bestTransportation = 
-							this.getCheapestTransportation( 
+							this.getBestTransportation( 
 								this.correctPaths[i][j], 
-								this.correctPaths[i][j + 1] 
+								this.correctPaths[i][j + 1],
+								"cheapestTransportations",
+								"discountedCost"
 							);
 					}
 					else if ( this.sortByTime ) { 
 						bestTransportation = 
-							this.getFastestTransportation( 
+							this.getBestTransportation( 
 								this.correctPaths[i][j], 
-								this.correctPaths[i][j + 1] 
+								this.correctPaths[i][j + 1],
+								"fastestTransportations",
+								"travelTime"
 							);
 					}
 
@@ -269,60 +284,36 @@ app = new Vue({
 			return bestItinerary;
 
 		},
-		getCheapestTransportation: function( pDeparture, pArrival ) {
-
-			function effectiveCost( transportation ) {
-				return transportation.cost * ( 100 - transportation.discount ) / 100; 
-			}
-			//var useCache = true;
+		effectiveCost: function( transportation ) {
+			return cost = parseInt( transportation.cost ) * 
+				( 100 - parseInt( transportation.discount ) ) / 100;  
+		},
+		travelTime: function( transportation ) {
+			return parseInt( transportation.duration.h ) * 60  + parseInt( transportation.duration.m ); 
+		},
+		getBestTransportation: function( pDeparture, pArrival, cachePropertyName, propertyToCompare ) {
 			
 			//a cache system
-			if ( !this.cheapestTransportations[pDeparture + "|" + pArrival] ) {
-				//useCache = false;
+			if ( !this[cachePropertyName][pDeparture + "|" + pArrival] ) {
+
 				var directTransportations = this.getDirectTransportations( pDeparture, pArrival );
 				var bestDeal = null;
-				//the cheapest transportation
+				//the best(cheapest/fastest) transportation
 				for ( var i= 0; i < directTransportations.length; i++ ) {
 					directTransportations[i].discountedCost = 
-						effectiveCost( directTransportations[i] );
-					if ( !bestDeal || directTransportations[i].discountedCost < bestDeal.discountedCost ){
-						bestDeal = directTransportations[i];
-					}
-				}
-				//fill the cache with the computed value
-				this.cheapestTransportations[pDeparture + "|" + pArrival] = helpers.deepCopy( bestDeal );
-			}
+						this.effectiveCost( directTransportations[i] );
 
-			/*if ( useCache ) {
-				console.log( "useCache: " + pDeparture + "|" + pArrival );
-			}*/
-			return this.cheapestTransportations[pDeparture + "|" + pArrival];
-
-		},
-		getFastestTransportation: function( pDeparture, pArrival ) {
-
-			function travelTime( transportation ) {
-				return parseInt( transportation.duration.h ) * 60  + parseInt( transportation.duration.m ); 
-			}
-
-			//a cache system
-			if ( !this.fastestTransportations[pDeparture + "|" + pArrival] ) {
-				//useCache = false;
-				var directTransportations = this.getDirectTransportations( pDeparture, pArrival );
-				var bestDeal = null;
-				//the fastest transportation
-				for ( var i= 0; i < directTransportations.length; i++ ) {
 					directTransportations[i].travelTime = 
-						travelTime( directTransportations[i] );
-					if ( !bestDeal || directTransportations[i].travelTime < bestDeal.travelTime ){
-						bestDeal = directTransportations[i];
+						this.travelTime( directTransportations[i] );
+					if ( !bestDeal || directTransportations[i][propertyToCompare] < bestDeal[propertyToCompare] ){
+						bestDeal = helpers.deepCopy( directTransportations[i] );
 					}
 				}
 				//fill the cache with the computed value
-				this.fastestTransportations[pDeparture + "|" + pArrival] = helpers.deepCopy( bestDeal );
+				this[cachePropertyName][pDeparture + "|" + pArrival] = helpers.deepCopy( bestDeal );
 			}
 
-			return this.fastestTransportations[pDeparture + "|" + pArrival];
+			return this[cachePropertyName][pDeparture + "|" + pArrival];
 
 		},
 		getDirectTransportations: function( pDeparture, pArrival ) {
@@ -348,17 +339,10 @@ app = new Vue({
 				}
 			}
 		},
-		/*2- finds all ways from a to b
-				we start from the departure
-				we check all of the consecutives town
-				we note each town we pass by
-				we don't go back to a town already seen
-				until: 
-					1 - there are no new town
-					2 - or the town is destination
-				if 2 , we add it to paths to check
+		/*2- recursive algorithm to two find all paths from a city to another city without
+			passing by the same place two times
 			*/
-		findAllWaysFromAToB: function( src, dest, excludedPoints ) {
+		findAllPathsFromAToB: function( src, dest, excludedPoints ) {
 
 			//dest in direct src neighbors
 			if ( this.neighboursMap[src].indexOf(dest) >= 0 ) {
@@ -370,7 +354,7 @@ app = new Vue({
 					return [ src , dest ];
 				}
 			}
-			//all neighbors excluded
+			//all current neighbors excluded
 			if ( helpers.arrayContains( excludedPoints, this.neighboursMap[src] ) ) {
 				return null;
 			}
@@ -380,7 +364,7 @@ app = new Vue({
 				if ( excludedPoints.indexOf( this.neighboursMap[src][ i ] ) < 0  ){
 					var updatedExcludedPoints = 
 						excludedPoints.indexOf(src) < 0 ? excludedPoints.concat([src]) : excludedPoints;
-					var path = this.findAllWaysFromAToB( this.neighboursMap[src][ i ], dest, updatedExcludedPoints );
+					var path = this.findAllPathsFromAToB( this.neighboursMap[src][ i ], dest, updatedExcludedPoints );
 					if ( path ){
 						var result;
 						if ( excludedPoints.length == 0 ){
@@ -390,7 +374,6 @@ app = new Vue({
 							result = updatedExcludedPoints.concat( path );
 						}
 						this.correctPaths.push( result );
-						//console.log(this.correctPaths.length + ' | ' +  result);
 					}
 				}
 			}

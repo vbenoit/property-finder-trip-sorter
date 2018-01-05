@@ -25,8 +25,8 @@
 				<span id="currency" >
 					<select v-model="currency" >
 						<option value="EUR" >€</option>
-						<option value="DOLR" >$</option>
-						<option value="PND" >£</option>
+						<!--<option value="DOLR" >$</option>
+						<option value="PND" >£</option>-->
 					</select>
 				</span>
 			</div>
@@ -57,9 +57,9 @@
 				<div id="result-details" v-if="displayResult">
 					<ul>
 						<li class="etap" v-for="directItinerary in processedItinerary" >
-							{{directItinerary.departure}} - {{directItinerary.arrival}} | price: {{directItinerary.discountedCost}}{{currenrySymbols[currency]}} ( {{ directItinerary.cost }}{{currenrySymbols[currency]}}  - {{ directItinerary.discount }}% ), duration: {{directItinerary.duration.h}}h {{directItinerary.duration.m}}min
+							{{directItinerary.departure}} - {{directItinerary.arrival}} | price: {{directItinerary.discountedCost}}{{currenrySymbols[currency]}} ( {{ directItinerary.cost }}{{currenrySymbols[currency]}}  - {{ directItinerary.discount }}% ), duration: {{directItinerary.duration.h}}h {{directItinerary.duration.m}}min by {{directItinerary.transport}} | ref: {{directItinerary.reference}}
 						</li>
-						<li class="recap" >Total price: {{processedItinerary.totalCost}}{{currenrySymbols[currency]}} | total duration: {{processedItinerary.durationH}}h {{processedItinerary.durationM}}min</li>
+						<li class="recap" >Total price: {{processedItinerary.totalCost}}{{currenrySymbols[currency]}} | total duration: {{processedItinerary.duration.h}}h {{processedItinerary.duration.m}}min</li>
 						<!-- {{directItinerary.departure + '-' + directItinerary.arrival + " | price: " + directItinerary.discountedCost + "("  + directItinerary.cost + " - "+ directItinerary.discount " % ), duration: " + directItinerary.duration.h + "h " + directItinerary.duraration.m + " min" }} -->
 					</ul>
 				</div>
