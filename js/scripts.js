@@ -159,20 +159,17 @@ app = new Vue({
 				this.correctPaths = this.correctPaths.concat( [ways] );
 			}
 
-			console.log( this.correctPaths );
+			console.log( this.correctPaths.length + " - before removing duplicates" );
 
 			/* 2 - remove duplicates */
 			this.correctPaths = helpers.removeDuplicates(this.correctPaths);
 
-			console.log( this.correctPaths );
+			console.log( this.correctPaths.length + " - after removing duplicates" );
 
-
-			/* 3 - for all these ways we compute all combinaison by train, bus, plane with theirs duration and prices */
-			//this.computeAllPricesFromPaths();
-			//this.computeAllDurationsFromPaths();
-
-			/* 4 - we chose the cheapest/fastest */
+			/* 3 - we chose the cheapest/fastest */
 			this.processedItinerary = this.getBestItinerary();
+			
+			/* processing for additional informations */
 			this.processedItinerary.totalCost = 
 				this.processedItinerary.reduce( 
 					function( totalAmount, currentTransportation ) { 
@@ -182,15 +179,15 @@ app = new Vue({
 			debugger;
 
 		},
-		getBestItinerary: function() {
+		/*getBestItinerary: function() {
 			if ( this.sortByPrice ) {
 				return this.computeCheapestItinerary();
 			}
 			else if ( this.sortByTime ) {
 				return this.computeFastestItinerary();
 			}
-		},
-		computeCheapestItinerary: function() {
+		},*/
+		getBestItinerary: function() {
 
 			var smallestAmount = null;
 			var bestItineraryIndex = null;
@@ -202,19 +199,35 @@ app = new Vue({
 				var nullTransportation = false;
 				for ( var j=0; j < this.correctPaths[i].length - 1; j++ ){
 					
-					var cheapestTransportation = 
-						this.getCheapestTransportation( 
-							this.correctPaths[i][j], 
-							this.correctPaths[i][j + 1] 
-						);
+					var bestTransportation = null;
 
-					if (!cheapestTransportation){
+					if ( this.sortByPrice ) { 
+						bestTransportation = 
+							this.getCheapestTransportation( 
+								this.correctPaths[i][j], 
+								this.correctPaths[i][j + 1] 
+							);
+					}
+					else if ( this.sortByTime ) { 
+						bestTransportation = 
+							this.getFastestTransportation( 
+								this.correctPaths[i][j], 
+								this.correctPaths[i][j + 1] 
+							);
+					}
+
+					if (!bestTransportation){
 						nullTransportation = true;
 						break;
 					}
 
-					currentAmount += cheapestTransportation.discountedCost;
-					currentItinerary.push( helpers.deepCopy( cheapestTransportation) );
+					if ( this.sortByPrice ) { 
+						currentAmount += bestTransportation.discountedCost;
+					}
+					if ( this.sortByTime ){
+						currentAmount += bestTransportation.travelTime
+					}
+					currentItinerary.push( helpers.deepCopy( bestTransportation) );
 				}
 
 				if ( nullTransportation ){
@@ -236,10 +249,11 @@ app = new Vue({
 			function effectiveCost( transportation ) {
 				return transportation.cost * ( 100 - transportation.discount ) / 100; 
 			}
-			var useCache = true;
+			//var useCache = true;
+			
 			//a cache system
 			if ( !this.cheapestTransportations[pDeparture + "|" + pArrival] ) {
-				useCache = false;
+				//useCache = false;
 				var directTransportations = this.getDirectTransportations( pDeparture, pArrival );
 				var bestDeal = null;
 				//the cheapest transportation
@@ -254,10 +268,36 @@ app = new Vue({
 				this.cheapestTransportations[pDeparture + "|" + pArrival] = helpers.deepCopy( bestDeal );
 			}
 
-			if ( useCache ) {
+			/*if ( useCache ) {
 				console.log( "useCache: " + pDeparture + "|" + pArrival );
-			}
+			}*/
 			return this.cheapestTransportations[pDeparture + "|" + pArrival];
+
+		},
+		getFastestTransportation: function( pDeparture, pArrival ) {
+
+			function travelTime( transportation ) {
+				return parseInt( transportation.duration.h ) * 60  + parseInt( transportation.duration.m ); 
+			}
+
+			//a cache system
+			if ( !this.fastestTransportations[pDeparture + "|" + pArrival] ) {
+				//useCache = false;
+				var directTransportations = this.getDirectTransportations( pDeparture, pArrival );
+				var bestDeal = null;
+				//the fastest transportation
+				for ( var i= 0; i < directTransportations.length; i++ ) {
+					directTransportations[i].travelTime = 
+						travelTime( directTransportations[i] );
+					if ( !bestDeal || directTransportations[i].travelTime < bestDeal.travelTime ){
+						bestDeal = directTransportations[i];
+					}
+				}
+				//fill the cache with the computed value
+				this.fastestTransportations[pDeparture + "|" + pArrival] = helpers.deepCopy( bestDeal );
+			}
+
+			return this.fastestTransportations[pDeparture + "|" + pArrival];
 
 		},
 		getDirectTransportations: function( pDeparture, pArrival ) {
