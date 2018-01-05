@@ -1,18 +1,38 @@
 helpers = {
 	arrayContains: function( container, contained ){
 
-    for(var i=0;i<contained.length;i++){
-         if( container.indexOf( contained[i] ) < 0 ){
-         	return false;
-         } 
-    }
-    return true;
+	    for(var i=0;i<contained.length;i++){
+	         if( container.indexOf( contained[i] ) < 0 ){
+	         	return false;
+	         } 
+	    }
+	    return true;
 
 	},
 	deepCopy: function( object ) {
 		return JSON.parse( JSON.stringify( object ) );
+	},
+	removeDuplicates: function( array ){
+
+		var store = {};
+		var filteredArray = [];
+		for (var i = 0; i < array.length; i++) {
+			if ( array[i] ){
+				var key = array[i].join('|');
+			
+				if (!store[key]) {
+					filteredArray.push(array[i]);
+					store[key] = 1;
+				}
+			}
+		}
+
+		return filteredArray;
+
 	}
 }
+
+//[].prototype.containsArray = helpers.arrayContains;
 
 app = new Vue({
 	http: Vue.http,
@@ -39,7 +59,10 @@ app = new Vue({
 
 			neighboursMap: [],
 
-			correctPaths: []
+			correctPaths: [],
+
+			this.cheapestTransportations: [],
+			this.fastestTransportations: []
 
 		}
 
@@ -133,16 +156,95 @@ app = new Vue({
 
 			if ( this.currentDeparture != "0" && this.currentArrival != "0" ) {
 				ways= this.findAllWaysFromAToB( this.currentDeparture, this.currentArrival, []);
+				this.correctPaths = this.correctPaths.concat( [ways] );
 			}
 
 			console.log( this.correctPaths );
 
 			/* 2 - remove duplicates */
+			this.correctPaths = helpers.removeDuplicates(this.correctPaths);
+
+			console.log( this.correctPaths );
+
 
 			/* 3 - for all these ways we compute all combinaison by train, bus, plane with theirs duration and prices */
+			//this.computeAllPricesFromPaths();
+			//this.computeAllDurationsFromPaths();
 
 			/* 4 - we chose the cheapest/fastest */
+			this.processedItinerary = this.getBestItinerary();
 
+			debugger;
+
+		},
+		getBestItinerary: function() {
+			if ( this.sortByPrice ) {
+				return this.computeCheapestItinerary();
+			}
+			else if ( this.sortByTime ) {
+				return this.computeFastestItinerary();
+			}
+		},
+		computeCheapestItinerary: function() {
+
+			var smallestAmount = null;
+			var bestItineraryIndex = null;
+			var bestItinerary = null;
+
+			for ( var i=0, l = this.correctPaths.length; i < l; i++ ) {
+				currentAmount = 0;
+				var currentItinerary = [];
+				for ( var j=0; j < this.correctPaths[i].length - 1; j++ ){
+					
+					var cheapestTransportation = 
+						this.getCheapestTransportation( 
+							this.correctPaths[i][j], 
+							this.correctPaths[i][j + 1] 
+						);
+
+					currentAmount += cheapestTransportation.discountedCost;
+					currentItinerary.push( helpers.deepCopy( cheapestTransportation) );
+				}
+
+				if ( smallestAmount == null || currentAmount < smallestAmount ){
+					smallestAmount = currentAmount;
+					bestItineraryIndex = i;
+					bestItinerary = helpers.deepCopy( currentItinerary );
+				}
+			}
+
+			return bestItinerary;
+
+		},
+		getCheapestTransportation: function( pDeparture, pArrival ) {
+
+			function effectiveCost( transportation ) {
+				return transportation.cost * ( 100 - transportation.discount ) / 100; 
+			}
+
+			//a cache system
+			if ( !this.cheapestTransportation[pDeparture + "|" + pArrival] ) {
+				var directTransportations = this.getDirectTransportations( pDeparture, pArrival );
+				var bestDeal = null;
+				//the cheapest transportation
+				for ( var i= 0; i < directTransportations.length; i++ ) {
+					directTransportations[i].discountedCost = 
+						effectiveCost( directTransportations[i] );
+					if ( !bestDealAmount || directTransportations[i].discountedCost < bestDealAmount ){
+						bestDeal = directTransportations[i].discountedCost;
+					}
+				}
+				//fill the cache with the computed value
+				this.cheapestTransportation[pDeparture + "|" + pArrival] = helpers.deepCopy( bestDeal );
+			}
+
+			return this.cheapestTransportation[pDeparture + "|" + pArrival];
+
+		},
+		getDirectTransportations: function( pDeparture, pArrival ) {
+			this.travelsData.deals.filter( function( travel ) {
+				return ( travel.departure === pDeparture && travel.arrival === pArrival  );
+			} );
 		},
 		generateMap: function() {
 
@@ -176,7 +278,12 @@ app = new Vue({
 
 			//dest in direct src neighbors
 			if ( this.neighboursMap[src].indexOf(dest) >= 0 ) {
-				return [ src, dest ];
+				if ( excludedPoints.length === 0 ){
+					this.correctPaths.push( [ src, dest ] );
+				}
+				else{
+					return [ src , dest ];
+				}
 			}
 			//all neighbors excluded
 			if ( helpers.arrayContains( excludedPoints, this.neighboursMap[src] ) ) {
@@ -190,7 +297,13 @@ app = new Vue({
 						excludedPoints.indexOf(src) < 0 ? excludedPoints.concat([src]) : excludedPoints;
 					var path = this.findAllWaysFromAToB( this.neighboursMap[src][ i ], dest, updatedExcludedPoints );
 					if ( path ){
-						var result = excludedPoints.concat( path );
+						var result;
+						if ( excludedPoints.length == 0 ){
+							result = [src].concat(path);
+						}
+						else{ 
+							result = excludedPoints.concat( path );
+						}
 						this.correctPaths.push( result );
 						console.log(this.correctPaths.length + ' | ' +  result);
 					}
