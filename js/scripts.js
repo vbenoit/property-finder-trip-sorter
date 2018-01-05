@@ -61,8 +61,8 @@ app = new Vue({
 
 			correctPaths: [],
 
-			this.cheapestTransportations: [],
-			this.fastestTransportations: []
+			cheapestTransportations: [],
+			fastestTransportations: []
 
 		}
 
@@ -173,6 +173,11 @@ app = new Vue({
 
 			/* 4 - we chose the cheapest/fastest */
 			this.processedItinerary = this.getBestItinerary();
+			this.processedItinerary.totalCost = 
+				this.processedItinerary.reduce( 
+					function( totalAmount, currentTransportation ) { 
+						return totalAmount + currentTransportation.discountedCost 
+					}, 0 );
 
 			debugger;
 
@@ -194,6 +199,7 @@ app = new Vue({
 			for ( var i=0, l = this.correctPaths.length; i < l; i++ ) {
 				currentAmount = 0;
 				var currentItinerary = [];
+				var nullTransportation = false;
 				for ( var j=0; j < this.correctPaths[i].length - 1; j++ ){
 					
 					var cheapestTransportation = 
@@ -202,8 +208,17 @@ app = new Vue({
 							this.correctPaths[i][j + 1] 
 						);
 
+					if (!cheapestTransportation){
+						nullTransportation = true;
+						break;
+					}
+
 					currentAmount += cheapestTransportation.discountedCost;
 					currentItinerary.push( helpers.deepCopy( cheapestTransportation) );
+				}
+
+				if ( nullTransportation ){
+					continue;
 				}
 
 				if ( smallestAmount == null || currentAmount < smallestAmount ){
@@ -221,28 +236,32 @@ app = new Vue({
 			function effectiveCost( transportation ) {
 				return transportation.cost * ( 100 - transportation.discount ) / 100; 
 			}
-
+			var useCache = true;
 			//a cache system
-			if ( !this.cheapestTransportation[pDeparture + "|" + pArrival] ) {
+			if ( !this.cheapestTransportations[pDeparture + "|" + pArrival] ) {
+				useCache = false;
 				var directTransportations = this.getDirectTransportations( pDeparture, pArrival );
 				var bestDeal = null;
 				//the cheapest transportation
 				for ( var i= 0; i < directTransportations.length; i++ ) {
 					directTransportations[i].discountedCost = 
 						effectiveCost( directTransportations[i] );
-					if ( !bestDealAmount || directTransportations[i].discountedCost < bestDealAmount ){
-						bestDeal = directTransportations[i].discountedCost;
+					if ( !bestDeal || directTransportations[i].discountedCost < bestDeal.discountedCost ){
+						bestDeal = directTransportations[i];
 					}
 				}
 				//fill the cache with the computed value
-				this.cheapestTransportation[pDeparture + "|" + pArrival] = helpers.deepCopy( bestDeal );
+				this.cheapestTransportations[pDeparture + "|" + pArrival] = helpers.deepCopy( bestDeal );
 			}
 
-			return this.cheapestTransportation[pDeparture + "|" + pArrival];
+			if ( useCache ) {
+				console.log( "useCache: " + pDeparture + "|" + pArrival );
+			}
+			return this.cheapestTransportations[pDeparture + "|" + pArrival];
 
 		},
 		getDirectTransportations: function( pDeparture, pArrival ) {
-			this.travelsData.deals.filter( function( travel ) {
+			return this.travelsData.deals.filter( function( travel ) {
 				return ( travel.departure === pDeparture && travel.arrival === pArrival  );
 			} );
 		},
@@ -278,6 +297,7 @@ app = new Vue({
 
 			//dest in direct src neighbors
 			if ( this.neighboursMap[src].indexOf(dest) >= 0 ) {
+				//direct transportation
 				if ( excludedPoints.length === 0 ){
 					this.correctPaths.push( [ src, dest ] );
 				}
@@ -302,7 +322,7 @@ app = new Vue({
 							result = [src].concat(path);
 						}
 						else{ 
-							result = excludedPoints.concat( path );
+							result = updatedExcludedPoints.concat( path );
 						}
 						this.correctPaths.push( result );
 						console.log(this.correctPaths.length + ' | ' +  result);
