@@ -197,60 +197,69 @@ app = new Vue({
 			console.log( this.correctPaths.length + " - after removing duplicates" );
 
 			/* 3 - we chose the cheapest/fastest */
-			this.processedItinerary = helpers.deepCopy( this.getBestItinerary() );
-			//Vue.set(app, "processedItinerary", this.getBestItinerary());
+			this.processedItinerary = 
+				helpers.deepCopy( 
+					this.getBestItinerary( this.correctPaths, this.sortByPrice, this.sortByTime ) );
 
 			this.displayResult = true;
 			
 			/* processing for additional informations */
-			this.processedItinerary.totalCost = 
-				this.processedItinerary.reduce( 
+			this.processedItinerary = 
+				this.computeAdditionalInformationsForItinerary( this.processedItinerary );
+
+		},
+		computeAdditionalInformationsForItinerary: function( itinerary ){
+
+			itinerary.totalCost = 
+				itinerary.reduce( 
 					function( totalAmount, currentTransportation ) { 
 						return totalAmount + currentTransportation.discountedCost 
 					}, 0 );
 
-			this.processedItinerary.totalTime = 
-				this.processedItinerary.reduce( 
+			itinerary.totalTime = 
+				itinerary.reduce( 
 					function( totalAmount, currentTransportation ) { 
 						return totalAmount + currentTransportation.travelTime 
 					}, 0 );
 
-			this.processedItinerary.duration = {};
-			this.processedItinerary.duration.h = 
-				Math.floor(this.processedItinerary.totalTime / 60 );
+			itinerary.duration = {};
+			itinerary.duration.h = 
+				Math.floor(itinerary.totalTime / 60 );
 
-			this.processedItinerary.duration.m =
-				Math.round(this.processedItinerary.totalTime % 60 );
+			itinerary.duration.m =
+				Math.round(itinerary.totalTime % 60 );
+
+			return itinerary;
 
 		},
-		getBestItinerary: function() {
+		getBestItinerary: function( correctPaths, sortByPrice, sortByTime ) {
 
 			var smallestAmount = null;
 			var bestItineraryIndex = null;
 			var bestItinerary = null;
 
-			for ( var i=0, l = this.correctPaths.length; i < l; i++ ) {
+			for ( var i=0, l = correctPaths.length; i < l; i++ ) {
 				currentAmount = 0;
 				var currentItinerary = [];
 				var nullTransportation = false;
-				for ( var j=0; j < this.correctPaths[i].length - 1; j++ ){
+				for ( var j=0; j < correctPaths[i].length - 1; j++ ){
 					
 					var bestTransportation = null;
 
-					if ( this.sortByPrice ) { 
+					if ( sortByPrice ) { 
 						bestTransportation = 
 							this.getBestTransportation( 
-								this.correctPaths[i][j], 
-								this.correctPaths[i][j + 1],
+								correctPaths[i][j], 
+								correctPaths[i][j + 1],
 								"cheapestTransportations",
 								"discountedCost"
 							);
 					}
-					else if ( this.sortByTime ) { 
+					else if ( sortByTime ) { 
 						bestTransportation = 
 							this.getBestTransportation( 
-								this.correctPaths[i][j], 
-								this.correctPaths[i][j + 1],
+								correctPaths[i][j], 
+								correctPaths[i][j + 1],
 								"fastestTransportations",
 								"travelTime"
 							);
@@ -261,10 +270,10 @@ app = new Vue({
 						break;
 					}
 
-					if ( this.sortByPrice ) { 
+					if ( sortByPrice ) { 
 						currentAmount += bestTransportation.discountedCost;
 					}
-					if ( this.sortByTime ){
+					if ( sortByTime ){
 						currentAmount += bestTransportation.travelTime
 					}
 					currentItinerary.push( helpers.deepCopy( bestTransportation) );
@@ -384,3 +393,52 @@ app = new Vue({
 		this.getTravelsData();
 	}
 }).$mount("#app");
+
+
+
+function tests(){
+
+	function processItinerary( pDeparture, pArrival, sortByPrice, sortByTime ) {
+
+		var ways= app.findAllPathsFromAToB( pDeparture, pArrival, []);
+		var correctPaths = helpers.deepCopy( app.correctPaths );
+
+		correctPaths = helpers.removeDuplicates(correctPaths);
+
+		var processedItinerary = 
+			helpers.deepCopy( app.getBestItinerary( correctPaths, sortByPrice, sortByTime ) );
+			
+		return app.computeAdditionalInformationsForItinerary( processedItinerary );
+
+	}
+
+	console.time('Test #1');
+	var itinerary = processItinerary( "Geneva", "Stockholm", false, true );
+	if ( itinerary[1].departure === "Brussels" 
+		&& itinerary[2].departure === "Prague"
+		&& itinerary[3].departure === "Moscow"
+		&& itinerary.totalCost === 640
+		&& itinerary.duration.h === 14
+		&& itinerary.duration.m === 0 ){
+		console.log( "processedItinerary( \"Geneva\", \"Stockholm\", fastest ) is what's expected" );
+	}
+	else{
+		console.log( "Error, regression - processedItinerary( \"Geneva\", \"Stockholm\", fastest )" );
+	}
+	console.timeEnd('Test #1');
+
+	console.time('Test #2');
+	itinerary = processItinerary( "Geneva", "Stockholm", true, false );
+	if ( itinerary[1].departure === "Brussels" 
+		&& itinerary[2].departure === "Amsterdam"
+		&& itinerary[3].departure === "Warsaw"
+		&& itinerary.totalCost === 110
+		&& itinerary.duration.h === 21
+		&& itinerary.duration.m === 0 ){
+		console.log( "processedItinerary( \"Geneva\", \"Stockholm\", cheapest ) is what's expected" );
+	}
+	else{
+		console.log( "Error, regression - processedItinerary( \"Geneva\", \"Stockholm\", cheapest )" );
+	}
+	console.timeEnd('Test #2');
+}
