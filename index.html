@@ -6,9 +6,11 @@
 	<title>Trip Sorter</title>
 	<meta name="description" content="trip sorting test">
 	<meta name="author" content="vbenoit">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	
-	<script defer src="js/material.min.js"></script>
+	<!--<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" />-->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous" />
 	<link rel="stylesheet" href="css/styles.css" />
 	
 
@@ -44,13 +46,23 @@
 						<option v-for="arrival in arrivals" v-bind:value="arrival" >{{arrival}}
 						</option>
 					</select>
-				</div>	
-				<div id="trip-type">
-					<span id="cheapest" v-on:click="setPriceSort()" v-bind:class="{ active: sortByPrice }">Cheapest</span>
-					<span id="fastest" v-on:click="setTimeSort()" v-bind:class="{ active: sortByTime }" >Fastest</span>
 				</div>
+				<div class="btn-group btn-group-toggle" data-toggle="buttons">
+				  <label class="btn btn-secondary" v-on:click="setPriceSort()" v-bind:class="{ active: sortByPrice }" >
+				    <input type="radio" name="trip-type" id="trip-type-1" autocomplete="off" checked> Cheapest
+				  </label>
+				  <label class="btn btn-secondary" v-on:click="setTimeSort()" v-bind:class="{ active: sortByTime }" >
+				    <input type="radio" name="trip-type" id="trip-type-1" autocomplete="off"> Fastest
+				  </label>
+				</div>
+				<!--<div id="trip-type">
+					<span id="cheapest" v-on:click="setPriceSort()" v-bind:class="{ active: sortByPrice }" >Cheapest</span>
+					<span id="fastest" v-on:click="setTimeSort()" v-bind:class="{ active: sortByTime }" >Fastest</span>
+				</div>-->
 				<div id="search">
-					<input type="button" v-on:click="launchSearch()" v-bind:disabled="!travelsDataFetched" value="Search" id="search-button" />
+					<button type="button" id="search-button" v-bind:disabled="!travelsDataFetched" v-on:click="launchSearch()" class="btn btn-default btn-lg">
+					  <span class="fa fa-search"></span>Search
+					</button>
 				</div>
 			</div>
 			<div id="result" v-cloak>
@@ -67,6 +79,9 @@
 			</div>
 		</div>
 	</div>
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js" integrity="sha384-a5N7Y/aK3qNeh15eJKGWxsqtnX/wWdSZSKp+81YjTmS15nvnvxKHuzaWwXHDli+4" crossorigin="anonymous"></script>
 	<script src="js/vue.js"></script>
 	<script src="js/vue-resource.js"></script>
 	<script src="js/scripts.js"></script>
