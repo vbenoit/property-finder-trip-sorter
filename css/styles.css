@@ -1,5 +1,6 @@
 body {
 	background-color: grey;
+	font-family: roboto, arial;
 }
 
 #main-container {
@@ -7,6 +8,11 @@ body {
 	margin: auto;
 	background-color: white;
 	padding: 15px;
+}
+
+#form select {
+	margin-top: 10px;
+	margin-bottom: 10px;
 }
 
 #currency {
@@ -17,6 +23,7 @@ body {
 	width: 150px;
 	height: 30px;
 	padding: 15px;
+	line-height: 30px;
 	text-align: center;
 	vertical-align: middle;
 	background-color: white;

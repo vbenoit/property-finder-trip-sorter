@@ -1,3 +1,39 @@
+Array.prototype.contains = function( contained ) {
+
+	if ( !contained ){
+		return null;
+	}
+
+    for(var i=0;i<contained.length;i++){
+         if( this.indexOf( contained[i] ) < 0 ){
+         	return false;
+         } 
+    }
+    return true;
+
+};
+
+httpClient = {
+
+	getContent: function( url, data, successProcessCallback ) {
+
+		Vue.http.get( url, data ).then(
+
+			function( response ) {
+				if ( successProcessCallback ){
+					successProcessCallback( response.body );
+				}
+			}, 
+			function ( response ) {
+				console.log("getContent - error: " + response.statusText );
+			}
+
+		);
+
+	}
+
+}
+
 helpers = {
 	deepCopy: function( object ) {
 		return JSON.parse( JSON.stringify( object ) );
@@ -45,42 +81,6 @@ helpers = {
 		return 0;
 	}
 };
-
-Array.prototype.contains = function( contained ) {
-
-	if ( !contained ){
-		return null;
-	}
-
-    for(var i=0;i<contained.length;i++){
-         if( this.indexOf( contained[i] ) < 0 ){
-         	return false;
-         } 
-    }
-    return true;
-
-};
-
-httpClient = {
-
-	getContent: function( url, data, successProcessCallback ) {
-
-		Vue.http.get( url, data ).then(
-
-			function( response ) {
-				if ( successProcessCallback ){
-					successProcessCallback( response.body );
-				}
-			}, 
-			function ( response ) {
-				console.log("getContent - error: " + response.statusText );
-			}
-
-		);
-
-	}
-
-}
 
 itineraryService = {
 
