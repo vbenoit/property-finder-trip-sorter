@@ -13,7 +13,6 @@ body {
 	margin: auto;
 	background-color: white;
 	padding: 15px;
-	height: 100%;
 }
 
 .bold {
@@ -57,12 +56,24 @@ body {
 
 .transportation-card {
 	background-color: #eeeeee;
+	width: 90%;
+	max-width: 600px;
+	margin: auto;
+	margin-bottom: 15px;
 }
 
 .transportation-card .card-body-left {
 	display: inline-block;
 	width: 60%;
 	text-align: left;
+}
+
+.white-bg {
+	background-color: white;
+}
+
+.padding5px {
+	padding: 5px;
 }
 
 .transportation-card .card-body-right {
@@ -74,4 +85,27 @@ body {
 
 .travel-summary-card {
 	background-color: #dddddd;
+	width: 90%;
+	max-width: 600px;
+	margin: auto;
+}
+
+.third {
+	width: 33%;
+	display: inline-block;
+}
+
+.left {
+	float: left;
+	text-align: left;
+}
+
+.center {
+	margin: auto;
+	text-align: center;
+}
+
+.right {
+	float: right;
+	text-align: right;
 }

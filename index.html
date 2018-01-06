@@ -58,15 +58,24 @@
 					<div class="card transportation-card" v-for="transportation in processedItinerary.transportationsList">
 					  <div class="card-body">
 					    <div class="card-body-first-line">
-					    	<span class="card-body-left" >{{transportation.departure}} &gt; {{transportation.arrival}}</span>
-					    	<span class="card-body-right" >{{transportation.discountedCost}}{{currenrySymbols[currency]}}</span>
+					    	<span class="card-body-left" >
+					    		<span class="bold">{{transportation.departure}}</span> 
+					    		<span class="rounded bold white-bg padding5px" >&gt;</span> 
+					    		<span class="bold">{{transportation.arrival}}</span>
+					    	</span>
+					    	<span class="card-body-right bold" >{{transportation.discountedCost}}{{currenrySymbols[currency]}}</span>
 					    </div>
 					    <div class="card-body-second-line"></div>
+					    	<span class="bold font-italic">{{transportation.transport}}</span>
+					    	<span class="font-italic">{{transportation.reference}}</span> for 
+					    	<span class="font-italic">{{transportation.duration.h}}h{{transportation.duration.m | minutesCompletion }}</span>
 					  </div>
 					</div>
 					<div class="card travel-summary-card">
 					  <div class="card-body">
-					    Total   {{processedItinerary.duration.h}}h {{processedItinerary.duration.m}}min {{processedItinerary.totalCost}}{{currenrySymbols[currency]}}
+					    <span class="third left bold" >Total</span>   
+					    <span class="third center" >{{processedItinerary.duration.h}}h{{processedItinerary.duration.m | minutesCompletion }}</span>
+					    <span class="third right bold" > {{processedItinerary.totalCost}}{{currenrySymbols[currency]}}
 					  </div>
 					</div>
 					<!--<ul>

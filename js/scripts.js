@@ -453,6 +453,15 @@ app = new Vue({
 				this.displayError = false;
 			}
 		}
+	},
+	filters: {
+	  minutesCompletion: function (value) {
+	    if (!value){ 
+	    	return '';
+	    }
+	    value = value.toString().length === 1 ? "0" + value : value;
+	    return value;
+	  }
 	}
 }).$mount("#app");
 
