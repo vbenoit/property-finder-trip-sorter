@@ -285,6 +285,7 @@ app = new Vue({
 			BOTH_VALUES_SET_MSG: "All fields are not set",
 			BOTH_VALUES_DIFFERENT_MSG: "Both location fields are the same",
 
+			EMPTY_STRING: "",
 			errorMessage: "",
 			displayError: false,
 
@@ -294,6 +295,7 @@ app = new Vue({
 			departures: [],
 			arrivals: [],
 
+			defaultCityValue: "0",
 			currentDeparture: "0",
 			currentArrival: "0",
 
@@ -302,14 +304,14 @@ app = new Vue({
 			displayForm: true,
 			displayResult: false,
 			FORM_BUTTON_VALUE: "Search",
-			RESULT_BUTTON_VALUE: "Refresh",
+			RESULT_BUTTON_VALUE: "Reset",
 			buttonValue: "",
 			FORM_ICON_VALUE: "fa-search",
-			RESULT_ICON_VALUE: "fa-refresh",
+			RESULT_ICON_VALUE: "fa-repeat horizontal-flip",
 			iconValue: "",
 			displayMode: "",
 			SEARCH_DISPLAY_MODE: "search",
-			REFRESH_DISPLAY_MODE: "refresh",
+			RESET_DISPLAY_MODE: "reset",
 
 			correctPaths: [],
 
@@ -386,19 +388,23 @@ app = new Vue({
 				this.displayForm = true;
 				this.displayResult = false;
 			}
-			else if ( this.displayMode === this.REFRESH_DISPLAY_MODE ){
+			else if ( this.displayMode === this.RESET_DISPLAY_MODE ){
 				this.iconValue = this.RESULT_ICON_VALUE;
 				this.buttonValue = this.RESULT_BUTTON_VALUE;
 				this.displayForm = false;
 				this.displayResult = true;
 			}
 		},
+		resetCitiesValues: function() {
+			this.currentDeparture = this.defaultCityValue;
+			this.currentArrival = this.defaultCityValue;
+		},
 		buttonClicked: function() {
 			if ( this.displayMode === this.SEARCH_DISPLAY_MODE ){
 				this.launchSearch();
 			}
 			else{
-				//this.flushResult();
+				this.resetCitiesValues();
 				this.displayMode = this.SEARCH_DISPLAY_MODE;
 				this.applyDisplayMode();
 			}
@@ -407,7 +413,7 @@ app = new Vue({
 
 			/* djikstras algorithm doesn't seem to be the most 
 				suitable for this situation */
-			this.setErrorMsg("");
+			this.setErrorMsg(this.EMPTY_STRING);
 
 			console.time("Launchsearch processing time");
 			/*  init results paths */
@@ -434,7 +440,7 @@ app = new Vue({
 			this.processedItinerary.computeAdditionalInformations();
 			console.timeEnd("Launchsearch processing time");
 
-			this.displayMode = this.REFRESH_DISPLAY_MODE;
+			this.displayMode = this.RESET_DISPLAY_MODE;
 			this.applyDisplayMode();
 
 		}
@@ -526,7 +532,7 @@ function Itinerary( pTransportationsList ){
 
 }
 
-function tests(){
+(function tests(){
 
 	function launchTests() {
 
@@ -601,4 +607,4 @@ function tests(){
 
 	}
 
-}
+})();
