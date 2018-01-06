@@ -345,10 +345,9 @@ app = new Vue({
 			if (!formOk){
 				return;
 			}
-
-			this.correctPaths = 
-				this.pItineraryService.findAllPathsFromAToB( 
-					this.currentDeparture, this.currentArrival, [], this.neighboursMap, this);
+ 
+			this.pItineraryService.findAllPathsFromAToB( 
+				this.currentDeparture, this.currentArrival, [], this.neighboursMap, this );
 
 			/* 2 - remove duplicates */
 			this.correctPaths = this.helpers.removeDuplicates(this.correctPaths);
