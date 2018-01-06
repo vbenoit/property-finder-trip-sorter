@@ -299,7 +299,17 @@ app = new Vue({
 
 			neighboursMap: [],
 
+			displayForm: true,
 			displayResult: false,
+			FORM_BUTTON_VALUE: "Search",
+			RESULT_BUTTON_VALUE: "Refresh",
+			buttonValue: "",
+			FORM_ICON_VALUE: "fa-search",
+			RESULT_ICON_VALUE: "fa-refresh",
+			iconValue: "",
+			displayMode: "",
+			SEARCH_DISPLAY_MODE: "search",
+			REFRESH_DISPLAY_MODE: "refresh",
 
 			correctPaths: [],
 
@@ -369,6 +379,30 @@ app = new Vue({
 			}
 			return (bothValuesSet && bothValuesDifferent);
 		},
+		applyDisplayMode: function() {
+			if ( this.displayMode === this.SEARCH_DISPLAY_MODE ){
+				this.iconValue = this.FORM_ICON_VALUE;
+				this.buttonValue = this.FORM_BUTTON_VALUE;
+				this.displayForm = true;
+				this.displayResult = false;
+			}
+			else if ( this.displayMode === this.REFRESH_DISPLAY_MODE ){
+				this.iconValue = this.RESULT_ICON_VALUE;
+				this.buttonValue = this.RESULT_BUTTON_VALUE;
+				this.displayForm = false;
+				this.displayResult = true;
+			}
+		},
+		buttonClicked: function() {
+			if ( this.displayMode === this.SEARCH_DISPLAY_MODE ){
+				this.launchSearch();
+			}
+			else{
+				//this.flushResult();
+				this.displayMode = this.SEARCH_DISPLAY_MODE;
+				this.applyDisplayMode();
+			}
+		},
 		launchSearch: function() {
 
 			/* djikstras algorithm doesn't seem to be the most 
@@ -400,11 +434,14 @@ app = new Vue({
 			this.processedItinerary.computeAdditionalInformations();
 			console.timeEnd("Launchsearch processing time");
 
-			this.displayResult = true;
+			this.displayMode = this.REFRESH_DISPLAY_MODE;
+			this.applyDisplayMode();
 
 		}
 	},
 	mounted: function(){
+		this.displayMode = this.SEARCH_DISPLAY_MODE;
+		this.applyDisplayMode();
 		this.getTravelsData();
 	},
 	watch: {

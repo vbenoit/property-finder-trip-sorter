@@ -4,10 +4,20 @@ body {
 }
 
 #main-container {
-	width: 80%;
+	width: 50%;
+	min-width: 400px;
 	margin: auto;
 	background-color: white;
 	padding: 15px;
+	height: 100%;
+}
+
+.bold {
+	font-weight: bold;
+}
+
+.red {
+	color: #cc0000;
 }
 
 #form select {

@@ -9,29 +9,27 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	
 	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" />
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous" />
+	<link rel="stylesheet" href="css/bootstrap.min.css" />
 	<link rel="stylesheet" href="css/styles.css" />
-	
 
 	<!--[if lt IE 9]>
 		<script src="js/html5shiv.js"></script>
 	<![endif]-->
+
 </head>
 
 <body>
 	<div id="app" ref="app" >
 		<div id="main-container">
-			<div id="title">
-				Trip Sorter
+			<div id="title" class="bold" >
+				Trip <span class="red">Sorter</span>
 				<span id="currency" >
 					<select v-model="currency" >
 						<option value="EUR" >€</option>
-						<!--<option value="DOLR" >$</option>
-						<option value="PND" >£</option>-->
 					</select>
 				</span>
 			</div>
-			<div id="form">
+			<div id="form" v-if="displayForm">
 				<div id="from-container" v-if="travelsDataFetched">
 					<select id="from" v-model="currentDeparture">
 						<option value="0">from</option>
@@ -54,35 +52,30 @@
 				    <input type="radio" name="trip-type" id="trip-type-1" autocomplete="off"> Fastest
 				  </label>
 				</div>
-				<!--<div id="trip-type">
-					<span id="cheapest" v-on:click="setPriceSort()" v-bind:class="{ active: sortByPrice }" >Cheapest</span>
-					<span id="fastest" v-on:click="setTimeSort()" v-bind:class="{ active: sortByTime }" >Fastest</span>
-				</div>-->
-				<div id="search">
-					<button type="button" id="search-button" v-bind:disabled="!travelsDataFetched" v-on:click="launchSearch()" class="btn btn-default btn-lg">
-					  <span class="fa fa-search right-space15px"></span>Search
-					</button>
-				</div>
 			</div>
-			<div id="result" v-cloak>
+			<div id="result" v-if="displayResult" v-cloak>
 				<div id="result-details" v-if="displayResult">
 					<ul>
 						<li class="step" v-for="transportation in processedItinerary.transportationsList" >
 							{{transportation.departure}} - {{transportation.arrival}} | price: {{transportation.discountedCost}}{{currenrySymbols[currency]}} ( {{ transportation.cost }}{{currenrySymbols[currency]}}  - {{ transportation.discount }}% ), duration: {{transportation.duration.h}}h {{transportation.duration.m}}min by {{transportation.transport}} | ref: {{transportation.reference}}
 						</li>
 						<li class="travel-summary" >Total price: {{processedItinerary.totalCost}}{{currenrySymbols[currency]}} | total duration: {{processedItinerary.duration.h}}h {{processedItinerary.duration.m}}min</li>
-						<!-- {{directItinerary.departure + '-' + directItinerary.arrival + " | price: " + directItinerary.discountedCost + "("  + directItinerary.cost + " - "+ directItinerary.discount " % ), duration: " + directItinerary.duration.h + "h " + directItinerary.duraration.m + " min" }} -->
 					</ul>
 				</div>
-				<div id="error-message" v-if="displayError">
-					<div class="alert alert-danger" role="alert">{{errorMessage}}</div>
-  				</div>
 			</div>
+			<div id="search">
+				<button type="button" id="search-button" v-bind:disabled="!travelsDataFetched" v-on:click="buttonClicked()" class="btn btn-default btn-lg">
+				  <span v-bind:class="iconValue" class="fa right-space15px"></span><span v-text="buttonValue"></span>
+				</button>
+			</div>
+			<div id="error-message" v-if="displayError">
+				<div class="alert alert-danger" role="alert">{{errorMessage}}</div>
+  			</div>
 		</div>
 	</div>
-	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js" integrity="sha384-a5N7Y/aK3qNeh15eJKGWxsqtnX/wWdSZSKp+81YjTmS15nvnvxKHuzaWwXHDli+4" crossorigin="anonymous"></script>
+	<script src="js/jquery-3.2.1.slim.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
 	<script src="js/vue.js"></script>
 	<script src="js/vue-resource.js"></script>
 	<script src="js/scripts.js"></script>
