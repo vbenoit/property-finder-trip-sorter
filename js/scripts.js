@@ -1,14 +1,4 @@
 helpers = {
-	arrayContains: function( container, contained ){
-
-	    for(var i=0;i<contained.length;i++){
-	         if( container.indexOf( contained[i] ) < 0 ){
-	         	return false;
-	         } 
-	    }
-	    return true;
-
-	},
 	deepCopy: function( object ) {
 		return JSON.parse( JSON.stringify( object ) );
 	},
@@ -29,10 +19,47 @@ helpers = {
 
 		return filteredArray;
 
+	},
+	processList: function( sourceList, objectRef, sourceProperty, list ) {
+		if ( sourceList ){
+			//push each different value
+			for ( var i = 0; i < sourceList.length; i++ ) {
+				if ( objectRef[list].indexOf( sourceList[i][sourceProperty] ) 
+						< 0 ){
+					objectRef[list].push( sourceList[i][sourceProperty] );
+				}
+			}
+			//sort
+			objectRef[list].sort( this.alphabeticalSort );
+		}
+	},
+	alphabeticalSort: function(nameA, nameB){
+		var nameAFormatted = nameA.toLowerCase();
+		var nameBFormatted = nameB.toLowerCase();
+		if (nameAFormatted < nameBFormatted) {
+			return -1;
+		}
+		if (nameAFormatted > nameBFormatted) {
+			return 1;
+		}
+		return 0;
 	}
 }
 
-//[].prototype.containsArray = helpers.arrayContains;
+Array.prototype.contains = function( contained ) {
+
+	if ( !contained ){
+		return null;
+	}
+
+    for(var i=0;i<contained.length;i++){
+         if( this.indexOf( contained[i] ) < 0 ){
+         	return false;
+         } 
+    }
+    return true;
+
+};
 
 app = new Vue({
 	http: Vue.http,
@@ -40,6 +67,8 @@ app = new Vue({
 	data: function() {
 
 		return {
+
+			helpers: helpers,
 
 			sortByPrice: true,
 			sortByTime: false,
@@ -85,13 +114,13 @@ app = new Vue({
 
 	},
 	methods: {
-		getContent: function( url, data, successProcessCallbackMethod ) {
+		getContent: function( url, data, successProcessCallback ) {
 
 			Vue.http.get( url, data ).then(
 
 				function( response ) {
-					if ( successProcessCallbackMethod ){
-						successProcessCallbackMethod( response.body );
+					if ( successProcessCallback ){
+						successProcessCallback( response.body );
 					}
 				}, 
 				function ( response ) {
@@ -103,10 +132,10 @@ app = new Vue({
 		},
 		setDeals: function( dealsData ){
 			if ( dealsData ) {
-				this.travelsData = helpers.deepCopy( dealsData );
+				this.travelsData = this.helpers.deepCopy( dealsData );
 				this.travelsDataFetched = true;
 				this.processFormValues();
-				/* for each town we set neighbor town */
+				/* for each city we set neighboring cities */
 				this.generateMap();
 			}
 
@@ -118,34 +147,10 @@ app = new Vue({
 			}
 		},
 		processDeparturesList: function(){
-			this.processList( this.travelsData.deals, "departure", "departures" );
+			this.helpers.processList( this.travelsData.deals, this, "departure", "departures" );
 		},
 		processArrivalsList: function(){
-			this.processList( this.travelsData.deals, "arrival", "arrivals" );
-		},
-		processList: function( sourceList, sourceProperty, list ) {
-			if ( sourceList ){
-				//push each different value
-				for ( var i = 0; i < sourceList.length; i++ ) {
-					if ( this[list].indexOf( sourceList[i][sourceProperty] ) 
-							< 0 ){
-						this[list].push( sourceList[i][sourceProperty] );
-					}
-				}
-				//sort
-				this[list].sort( this.alphabeticalSort );
-			}
-		},
-		alphabeticalSort: function(nameA, nameB){
-			var nameAFormatted = nameA.toLowerCase();
-			var nameBFormatted = nameB.toLowerCase();
-			if (nameAFormatted < nameBFormatted) {
-				return -1;
-			}
-			if (nameAFormatted > nameBFormatted) {
-				return 1;
-			}
-			return 0;
+			this.helpers.processList( this.travelsData.deals, this, "arrival", "arrivals" );
 		},
 		getTravelsData: function(){
 			var params = {};
@@ -166,8 +171,9 @@ app = new Vue({
 		launchSearch: function() {
 
 			/* djikstras algorithm doesn't seem to be the most 
-				adequate for this situation */
+				suitable for this situation */
 
+			console.time("Launchsearch processing time");
 			/*  init results paths */
 			this.correctPaths = [];	
 
@@ -192,44 +198,20 @@ app = new Vue({
 			console.log( this.correctPaths.length + " - before removing duplicates" );
 
 			/* 2 - remove duplicates */
-			this.correctPaths = helpers.removeDuplicates(this.correctPaths);
+			this.correctPaths = this.helpers.removeDuplicates(this.correctPaths);
 
 			console.log( this.correctPaths.length + " - after removing duplicates" );
 
 			/* 3 - we chose the cheapest/fastest */
-			this.processedItinerary = 
-				helpers.deepCopy( 
-					this.getBestItinerary( this.correctPaths, this.sortByPrice, this.sortByTime ) );
+			var bestItinerary = this.getBestItinerary( this.correctPaths, this.sortByPrice, this.sortByTime );
+			
+			this.processedItinerary = new Itinerary( bestItinerary );
+			this.processedItinerary.computeAdditionalInformations();
+			console.timeEnd("Launchsearch processing time");
 
 			this.displayResult = true;
 			
-			/* processing for additional informations */
-			this.processedItinerary = 
-				this.computeAdditionalInformationsForItinerary( this.processedItinerary );
-
-		},
-		computeAdditionalInformationsForItinerary: function( itinerary ){
-
-			itinerary.totalCost = 
-				itinerary.reduce( 
-					function( totalAmount, currentTransportation ) { 
-						return totalAmount + currentTransportation.discountedCost 
-					}, 0 );
-
-			itinerary.totalTime = 
-				itinerary.reduce( 
-					function( totalAmount, currentTransportation ) { 
-						return totalAmount + currentTransportation.travelTime 
-					}, 0 );
-
-			itinerary.duration = {};
-			itinerary.duration.h = 
-				Math.floor(itinerary.totalTime / 60 );
-
-			itinerary.duration.m =
-				Math.round(itinerary.totalTime % 60 );
-
-			return itinerary;
+			/* processing for additional informations for an itinerary */
 
 		},
 		getBestItinerary: function( correctPaths, sortByPrice, sortByTime ) {
@@ -276,7 +258,7 @@ app = new Vue({
 					if ( sortByTime ){
 						currentAmount += bestTransportation.travelTime
 					}
-					currentItinerary.push( helpers.deepCopy( bestTransportation) );
+					currentItinerary.push( new Transportation(bestTransportation) );
 				}
 
 				if ( nullTransportation ){
@@ -286,19 +268,12 @@ app = new Vue({
 				if ( smallestAmount == null || currentAmount < smallestAmount ){
 					smallestAmount = currentAmount;
 					bestItineraryIndex = i;
-					bestItinerary = helpers.deepCopy( currentItinerary );
+					bestItinerary = this.helpers.deepCopy( currentItinerary );
 				}
 			}
 
 			return bestItinerary;
 
-		},
-		effectiveCost: function( transportation ) {
-			return cost = parseInt( transportation.cost ) * 
-				( 100 - parseInt( transportation.discount ) ) / 100;  
-		},
-		travelTime: function( transportation ) {
-			return parseInt( transportation.duration.h ) * 60  + parseInt( transportation.duration.m ); 
 		},
 		getBestTransportation: function( pDeparture, pArrival, cachePropertyName, propertyToCompare ) {
 			
@@ -309,17 +284,16 @@ app = new Vue({
 				var bestDeal = null;
 				//the best(cheapest/fastest) transportation
 				for ( var i= 0; i < directTransportations.length; i++ ) {
-					directTransportations[i].discountedCost = 
-						this.effectiveCost( directTransportations[i] );
+					var currentTransportation = new Transportation( directTransportations[i] ); 
+					currentTransportation.computeEffectiveCost();
+					currentTransportation.computeTravelTimeInMin();
 
-					directTransportations[i].travelTime = 
-						this.travelTime( directTransportations[i] );
-					if ( !bestDeal || directTransportations[i][propertyToCompare] < bestDeal[propertyToCompare] ){
-						bestDeal = helpers.deepCopy( directTransportations[i] );
+					if ( !bestDeal || currentTransportation[propertyToCompare] < bestDeal[propertyToCompare] ){
+						bestDeal = this.helpers.deepCopy( currentTransportation );
 					}
 				}
 				//fill the cache with the computed value
-				this[cachePropertyName][pDeparture + "|" + pArrival] = helpers.deepCopy( bestDeal );
+				this[cachePropertyName][pDeparture + "|" + pArrival] = this.helpers.deepCopy( bestDeal );
 			}
 
 			return this[cachePropertyName][pDeparture + "|" + pArrival];
@@ -364,7 +338,7 @@ app = new Vue({
 				}
 			}
 			//all current neighbors excluded
-			if ( helpers.arrayContains( excludedPoints, this.neighboursMap[src] ) ) {
+			if ( excludedPoints.contains( this.neighboursMap[src] ) ) {
 				return null;
 			}
 
@@ -394,7 +368,66 @@ app = new Vue({
 	}
 }).$mount("#app");
 
+function Transportation( valuesObject ){
 
+	this.transport = valuesObject.transport;
+	this.departure = valuesObject.departure;
+	this.arrival = valuesObject.arrival;
+	this.duration = {};
+	this.duration.h = valuesObject.duration ? valuesObject.duration.h : null;
+	this.duration.m = valuesObject.duration ? valuesObject.duration.m : null;
+	this.cost = valuesObject.cost;
+	this.discount = valuesObject.discount;
+	this.reference = valuesObject.reference;
+
+	this.computeEffectiveCost = function() {
+		this.discountedCost = parseInt( this.cost ) * 
+				( 100 - parseInt( this.discount ) ) / 100;  
+	}
+
+	this.computeTravelTimeInMin = function() {
+		this.travelTime = parseInt( this.duration.h ) * 60  + parseInt( this.duration.m ); 
+	}
+
+}
+
+function Itinerary( pTransportationsList ){
+
+	this.transportationsList = [];
+
+	self = this;
+
+	pTransportationsList.map( function( pTransportation ){
+		var transportation = new Transportation( pTransportation );
+		transportation.computeEffectiveCost();
+		transportation.computeTravelTimeInMin();
+		self.transportationsList.push( transportation );
+	});
+
+	this.computeAdditionalInformations = function() {
+
+		this.totalCost = 
+			this.transportationsList.reduce( 
+				function( totalAmount, currentTransportation ) { 
+					return totalAmount + currentTransportation.discountedCost 
+				}, 0 );
+
+		this.totalTime = 
+			this.transportationsList.reduce( 
+				function( totalAmount, currentTransportation ) { 
+					return totalAmount + currentTransportation.travelTime 
+				}, 0 );
+
+		this.duration = {};
+		this.duration.h = 
+			Math.floor(this.totalTime / 60 );
+
+		this.duration.m =
+			Math.round(this.totalTime % 60 );
+
+	}
+
+}
 
 function tests(){
 
@@ -406,39 +439,43 @@ function tests(){
 		correctPaths = helpers.removeDuplicates(correctPaths);
 
 		var processedItinerary = 
-			helpers.deepCopy( app.getBestItinerary( correctPaths, sortByPrice, sortByTime ) );
-			
-		return app.computeAdditionalInformationsForItinerary( processedItinerary );
+			new Itinerary( app.getBestItinerary( correctPaths, sortByPrice, sortByTime ) );
+		processedItinerary.computeAdditionalInformations();	
+
+		return processedItinerary;
 
 	}
+
+	var colorOk = 'background: #222; color: #a7c93c';
+	var colorError = 'background: #222; color: #ec4d09';
 
 	console.time('Test #1');
 	var itinerary = processItinerary( "Geneva", "Stockholm", false, true );
-	if ( itinerary[1].departure === "Brussels" 
-		&& itinerary[2].departure === "Prague"
-		&& itinerary[3].departure === "Moscow"
+	if ( itinerary.transportationsList[1].departure === "Brussels" 
+		&& itinerary.transportationsList[2].departure === "Prague"
+		&& itinerary.transportationsList[3].departure === "Moscow"
 		&& itinerary.totalCost === 640
 		&& itinerary.duration.h === 14
 		&& itinerary.duration.m === 0 ){
-		console.log( "processedItinerary( \"Geneva\", \"Stockholm\", fastest ) is what's expected" );
+		console.log( "%c processedItinerary( \"Geneva\", \"Stockholm\", fastest ) is what's expected", colorOk );
 	}
 	else{
-		console.log( "Error, regression - processedItinerary( \"Geneva\", \"Stockholm\", fastest )" );
+		console.log( "%c Error, regression - processedItinerary( \"Geneva\", \"Stockholm\", fastest )", colorError );
 	}
 	console.timeEnd('Test #1');
 
 	console.time('Test #2');
 	itinerary = processItinerary( "Geneva", "Stockholm", true, false );
-	if ( itinerary[1].departure === "Brussels" 
-		&& itinerary[2].departure === "Amsterdam"
-		&& itinerary[3].departure === "Warsaw"
+	if ( itinerary.transportationsList[1].departure === "Brussels" 
+		&& itinerary.transportationsList[2].departure === "Amsterdam"
+		&& itinerary.transportationsList[3].departure === "Warsaw"
 		&& itinerary.totalCost === 110
 		&& itinerary.duration.h === 21
 		&& itinerary.duration.m === 0 ){
-		console.log( "processedItinerary( \"Geneva\", \"Stockholm\", cheapest ) is what's expected" );
+		console.log( "%c processedItinerary( \"Geneva\", \"Stockholm\", cheapest ) is what's expected", colorOk );
 	}
 	else{
-		console.log( "Error, regression - processedItinerary( \"Geneva\", \"Stockholm\", cheapest )" );
+		console.log( "%c Error, regression - processedItinerary( \"Geneva\", \"Stockholm\", cheapest )", colorError );
 	}
 	console.timeEnd('Test #2');
 }
