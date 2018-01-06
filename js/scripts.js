@@ -282,6 +282,7 @@ app = new Vue({
 
 			BOTH_VALUES_SET_MSG: "All fields are not set",
 			BOTH_VALUES_DIFFERENT_MSG: "Both location fields are the same",
+			BOTH_VALUES_UNSET_MSG: "No field set",
 
 			EMPTY_STRING: "",
 			errorMessage: "",
@@ -368,6 +369,7 @@ app = new Vue({
 		launchSearchFormControl: function() {
 			var bothValuesSet = this.currentDeparture != "0" && this.currentArrival != "0";
 			var bothValuesDifferent = ( this.currentDeparture != this.currentArrival );
+			var bothValuesUnset = this.currentDeparture === "0" && this.currentArrival === "0";
 
 			if ( !bothValuesSet ) {
 				this.setErrorMsg( this.BOTH_VALUES_SET_MSG );
@@ -376,6 +378,11 @@ app = new Vue({
 			if ( !bothValuesDifferent ) {
 				this.setErrorMsg( this.BOTH_VALUES_DIFFERENT_MSG );
 			}
+
+			if ( bothValuesUnset ) {
+				this.setErrorMsg( this.BOTH_VALUES_UNSET_MSG );
+			}
+
 			return (bothValuesSet && bothValuesDifferent);
 		},
 		applyDisplayMode: function() {

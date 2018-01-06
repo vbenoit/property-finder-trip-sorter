@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 
 	<title>Trip Sorter</title>
-	
+
 	<meta name="description" content="trip sorting test">
 	<meta name="author" content="vbenoit">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -30,7 +30,7 @@
 					</select>
 				</span>
 			</div>
-			<div id="form" v-if="displayForm">
+			<div id="form" v-if="displayForm" v-cloak>
 				<div id="from-container" v-if="travelsDataFetched">
 					<select id="from" v-model="currentDeparture">
 						<option value="0">from</option>
@@ -82,12 +82,12 @@
 					</div>
 				</div>
 			</div>
-			<div id="search">
+			<div id="search" v-cloak>
 				<button type="button" id="search-button" v-bind:disabled="!travelsDataFetched" v-on:click="buttonClicked()" class="btn btn-default btn-lg">
 				  <span v-bind:class="iconValue" class="fa right-space"></span><span v-text="buttonValue"></span>
 				</button>
 			</div>
-			<div id="error-message" v-if="displayError">
+			<div id="error-message" v-if="displayError" v-cloak>
 				<div class="alert alert-danger" role="alert">{{errorMessage}}</div>
   			</div>
 		</div>
