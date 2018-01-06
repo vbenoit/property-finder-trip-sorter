@@ -60,7 +60,7 @@
 				</div>-->
 				<div id="search">
 					<button type="button" id="search-button" v-bind:disabled="!travelsDataFetched" v-on:click="launchSearch()" class="btn btn-default btn-lg">
-					  <span class="fa fa-search"></span>Search
+					  <span class="fa fa-search right-space15px"></span>Search
 					</button>
 				</div>
 			</div>
@@ -74,7 +74,9 @@
 						<!-- {{directItinerary.departure + '-' + directItinerary.arrival + " | price: " + directItinerary.discountedCost + "("  + directItinerary.cost + " - "+ directItinerary.discount " % ), duration: " + directItinerary.duration.h + "h " + directItinerary.duraration.m + " min" }} -->
 					</ul>
 				</div>
-				<div id="error-message">{{errorMessage}}</div>
+				<div id="error-message" v-if="displayError">
+					<div class="alert alert-danger" role="alert">{{errorMessage}}</div>
+  				</div>
 			</div>
 		</div>
 	</div>

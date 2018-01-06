@@ -30,7 +30,11 @@ body {
 #search-button {
 	background-color: #009933;
 	color: white;
-	margin-top: 15px;
+	margin: 15px;
+}
+
+.right-space15px{
+	margin-right: 15px;
 }
 
 [v-cloak] {

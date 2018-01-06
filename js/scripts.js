@@ -286,6 +286,7 @@ app = new Vue({
 			BOTH_VALUES_DIFFERENT_MSG: "Both location fields are the same",
 
 			errorMessage: "",
+			displayError: false,
 
 			travelsDataFetched: false,
 			travelsData: {},
@@ -352,7 +353,7 @@ app = new Vue({
 			this.sortByTime = false;
 			this.sortByPrice = true;
 		},
-		displayError: function( msg ) {
+		setErrorMsg: function( msg ) {
 			this.errorMessage = msg;
 		},
 		launchSearchFormControl: function() {
@@ -360,11 +361,11 @@ app = new Vue({
 			var bothValuesDifferent = ( this.currentDeparture != this.currentArrival );
 
 			if ( !bothValuesSet ) {
-				this.displayError( this.BOTH_VALUES_SET_MSG );
+				this.setErrorMsg( this.BOTH_VALUES_SET_MSG );
 			}
 
 			if ( !bothValuesDifferent ) {
-				this.displayError( this.BOTH_VALUES_DIFFERENT_MSG );
+				this.setErrorMsg( this.BOTH_VALUES_DIFFERENT_MSG );
 			}
 			return (bothValuesSet && bothValuesDifferent);
 		},
@@ -372,6 +373,7 @@ app = new Vue({
 
 			/* djikstras algorithm doesn't seem to be the most 
 				suitable for this situation */
+			this.setErrorMsg("");
 
 			console.time("Launchsearch processing time");
 			/*  init results paths */
@@ -404,6 +406,16 @@ app = new Vue({
 	},
 	mounted: function(){
 		this.getTravelsData();
+	},
+	watch: {
+		errorMessage: function() {
+			if ( this.errorMessage ){
+				this.displayError = true;
+			}
+			else{
+				this.displayError = false;
+			}
+		}
 	}
 }).$mount("#app");
 
