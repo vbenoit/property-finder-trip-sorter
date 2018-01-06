@@ -29,9 +29,7 @@ httpClient = {
 			}
 
 		);
-
 	}
-
 }
 
 helpers = {
@@ -329,7 +327,6 @@ app = new Vue({
 			}
 
 		}
-
 	},
 	methods: {
 		setTravelsData: function( dealsData ){
@@ -420,7 +417,6 @@ app = new Vue({
 			this.correctPaths = [];	
 
 			var formOk = this.launchSearchFormControl();
-
 			if (!formOk){
 				return;
 			}
