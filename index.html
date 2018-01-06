@@ -56,10 +56,10 @@
 			<div id="result" v-cloak>
 				<div id="result-details" v-if="displayResult">
 					<ul>
-						<li class="etap" v-for="transportation in processedItinerary.transportationsList" >
+						<li class="step" v-for="transportation in processedItinerary.transportationsList" >
 							{{transportation.departure}} - {{transportation.arrival}} | price: {{transportation.discountedCost}}{{currenrySymbols[currency]}} ( {{ transportation.cost }}{{currenrySymbols[currency]}}  - {{ transportation.discount }}% ), duration: {{transportation.duration.h}}h {{transportation.duration.m}}min by {{transportation.transport}} | ref: {{transportation.reference}}
 						</li>
-						<li class="recap" >Total price: {{processedItinerary.totalCost}}{{currenrySymbols[currency]}} | total duration: {{processedItinerary.duration.h}}h {{processedItinerary.duration.m}}min</li>
+						<li class="travel-summary" >Total price: {{processedItinerary.totalCost}}{{currenrySymbols[currency]}} | total duration: {{processedItinerary.duration.h}}h {{processedItinerary.duration.m}}min</li>
 						<!-- {{directItinerary.departure + '-' + directItinerary.arrival + " | price: " + directItinerary.discountedCost + "("  + directItinerary.cost + " - "+ directItinerary.discount " % ), duration: " + directItinerary.duration.h + "h " + directItinerary.duraration.m + " min" }} -->
 					</ul>
 				</div>

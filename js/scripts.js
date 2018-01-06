@@ -180,9 +180,11 @@ itineraryService = {
 							correctPaths[i][j], 
 							correctPaths[i][j + 1],
 							travelsData,
-							cacheContainer,
-							"cheapestTransportations",
-							"discountedCost"
+							cacheContainer["cheapestTransportations"],
+							{ 
+								primary: "discountedCost",
+								secondary: "travelTime"
+							}
 						);
 				}
 				else if ( sortByTime ) { 
@@ -191,9 +193,11 @@ itineraryService = {
 							correctPaths[i][j], 
 							correctPaths[i][j + 1],
 							travelsData,
-							cacheContainer,
-							"fastestTransportations",
-							"travelTime"
+							cacheContainer["fastestTransportations"],
+							{
+								primary: "travelTime",
+								secondary: "discountedCost"
+							}
 						);
 				}
 
@@ -225,10 +229,10 @@ itineraryService = {
 		return bestItinerary;
 
 	},
-	getBestTransportation: function( pDeparture, pArrival, travelsData, cacheContainer, cachePropertyName, propertyToCompare ) {
+	getBestTransportation: function( pDeparture, pArrival, travelsData, cache, propertiesToCompare ) {
 			
 		//a cache system
-		if ( !cacheContainer[cachePropertyName][pDeparture + "|" + pArrival] ) {
+		if ( !cache[pDeparture + "|" + pArrival] ) {
 
 			var directTransportations = this.getDirectTransportations( pDeparture, pArrival, travelsData );
 			var bestDeal = null;
@@ -238,15 +242,20 @@ itineraryService = {
 				currentTransportation.computeEffectiveCost();
 				currentTransportation.computeTravelTimeInMin();
 
-				if ( !bestDeal || currentTransportation[propertyToCompare] < bestDeal[propertyToCompare] ){
+				if ( !bestDeal 
+					|| currentTransportation[propertiesToCompare.primary] < bestDeal[propertiesToCompare.primary] 
+					/* if both transportation are the same on the first element of comparison
+						we can then check the best on the another element of comparison */
+					|| ( currentTransportation[propertiesToCompare.primary] == bestDeal[propertiesToCompare.primary]
+						&& currentTransportation[propertiesToCompare.secondary] < bestDeal[propertiesToCompare.secondary] ) ){
 					bestDeal = this.helpers.deepCopy( currentTransportation );
 				}
 			}
 			//fill the cache with the computed value
-			cacheContainer[cachePropertyName][pDeparture + "|" + pArrival] = this.helpers.deepCopy( bestDeal );
+			cache[pDeparture + "|" + pArrival] = this.helpers.deepCopy( bestDeal );
 		}
 
-		return cacheContainer[cachePropertyName][pDeparture + "|" + pArrival];
+		return cache[pDeparture + "|" + pArrival];
 
 	},
 	getDirectTransportations: function( pDeparture, pArrival, travelsData ) {
