@@ -58,7 +58,8 @@
 					<div class="card transportation-card" v-for="transportation in processedItinerary.transportationsList">
 					  <div class="card-body">
 					    <div class="card-body-first-line">
-					    	{{transportation.departure}} &gt; {{transportation.arrival}} {{transportation.discountedCost}}{{currenrySymbols[currency]}}
+					    	<span class="card-body-left" >{{transportation.departure}} &gt; {{transportation.arrival}}</span>
+					    	<span class="card-body-right" >{{transportation.discountedCost}}{{currenrySymbols[currency]}}</span>
 					    </div>
 					    <div class="card-body-second-line"></div>
 					  </div>
