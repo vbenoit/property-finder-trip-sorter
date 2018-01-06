@@ -55,12 +55,25 @@
 			</div>
 			<div id="result" v-if="displayResult" v-cloak>
 				<div id="result-details" v-if="displayResult">
-					<ul>
+					<div class="card transportation-card" v-for="transportation in processedItinerary.transportationsList">
+					  <div class="card-body">
+					    <div class="card-body-first-line">
+					    	{{transportation.departure}} &gt; {{transportation.arrival}} {{transportation.discountedCost}}{{currenrySymbols[currency]}}
+					    </div>
+					    <div class="card-body-second-line"></div>
+					  </div>
+					</div>
+					<div class="card travel-summary-card">
+					  <div class="card-body">
+					    Total   {{processedItinerary.duration.h}}h {{processedItinerary.duration.m}}min {{processedItinerary.totalCost}}{{currenrySymbols[currency]}}
+					  </div>
+					</div>
+					<!--<ul>
 						<li class="step" v-for="transportation in processedItinerary.transportationsList" >
 							{{transportation.departure}} - {{transportation.arrival}} | price: {{transportation.discountedCost}}{{currenrySymbols[currency]}} ( {{ transportation.cost }}{{currenrySymbols[currency]}}  - {{ transportation.discount }}% ), duration: {{transportation.duration.h}}h {{transportation.duration.m}}min by {{transportation.transport}} | ref: {{transportation.reference}}
 						</li>
 						<li class="travel-summary" >Total price: {{processedItinerary.totalCost}}{{currenrySymbols[currency]}} | total duration: {{processedItinerary.duration.h}}h {{processedItinerary.duration.m}}min</li>
-					</ul>
+					</ul>-->
 				</div>
 			</div>
 			<div id="search">
