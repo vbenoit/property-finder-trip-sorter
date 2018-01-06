@@ -61,10 +61,60 @@ Array.prototype.contains = function( contained ) {
 
 };
 
+httpClient = {
+
+	getContent: function( url, data, successProcessCallback ) {
+
+		Vue.http.get( url, data ).then(
+
+			function( response ) {
+				if ( successProcessCallback ){
+					successProcessCallback( response.body );
+				}
+			}, 
+			function ( response ) {
+				console.log("getContent - error: " + response.statusText );
+			}
+
+		);
+
+	}
+
+}
+
 itineraryService = {
 
 	helpers: helpers,
+	http: httpClient,
+	travelsDataUrl: "data/response.json",
 
+	getTravelsData: function( dataFetchedCallback ) {
+
+		var params = {};
+		this.http.getContent( this.travelsDataUrl, params, dataFetchedCallback );
+
+	},
+	generateMap: function( travelsData ) {
+
+		var neighboursMap = [];
+
+		//key: town, value: array of neighboring towns
+		for ( var i = 0; i < travelsData.deals.length; i++ ){
+
+			var currentDeparture = travelsData.deals[i].departure;
+			var currentArrival = travelsData.deals[i].arrival;
+
+			if (!neighboursMap[ currentDeparture ]) {
+				neighboursMap[ currentDeparture ] = [];
+			}
+
+			if ( neighboursMap[ currentDeparture ].indexOf( currentArrival ) < 0 ){
+				neighboursMap[ currentDeparture ].push( currentArrival  );
+			}
+		}
+
+		return neighboursMap;
+	},
 	/*2- recursive algorithm to two find all paths from a city to another city without
 		passing by the same place two times
 	*/
@@ -229,7 +279,6 @@ app = new Vue({
 			errorMessage: "",
 
 			travelsDataFetched: false,
-			travelsUrl: "data/response.json",
 			travelsData: {},
 
 			departures: [],
@@ -261,29 +310,13 @@ app = new Vue({
 
 	},
 	methods: {
-		getContent: function( url, data, successProcessCallback ) {
-
-			Vue.http.get( url, data ).then(
-
-				function( response ) {
-					if ( successProcessCallback ){
-						successProcessCallback( response.body );
-					}
-				}, 
-				function ( response ) {
-					console.log("getContent - error: " + response.statusText );
-				}
-
-			);
-
-		},
-		setDeals: function( dealsData ){
+		setTravelsData: function( dealsData ){
 			if ( dealsData ) {
 				this.travelsData = this.helpers.deepCopy( dealsData );
 				this.travelsDataFetched = true;
 				this.processFormValues();
 				/* for each city we set neighboring cities */
-				this.generateMap();
+				this.neighboursMap = this.pItineraryService.generateMap( this.travelsData );
 			}
 
 		},
@@ -300,12 +333,7 @@ app = new Vue({
 			this.helpers.processList( this.travelsData.deals, this, "arrival", "arrivals" );
 		},
 		getTravelsData: function(){
-			var params = {};
-			this.getContent( 
-				this.travelsUrl, 
-				params, 
-				this.setDeals
-			);
+			this.pItineraryService.getTravelsData( this.setTravelsData );
 		},
 		setTimeSort: function() {
 			this.sortByTime = true;
@@ -363,26 +391,7 @@ app = new Vue({
 
 			this.displayResult = true;
 
-		},
-		generateMap: function() {
-
-			//key: town, value: array of neighboring towns
-			for ( var i = 0; i < this.travelsData.deals.length; i++ ){
-
-				var currentDeparture = this.travelsData.deals[i].departure;
-				var currentArrival = this.travelsData.deals[i].arrival;
-				//var townIndex = this.departures.indexOf( currentDeparture );
-
-				if (!this.neighboursMap[ currentDeparture ]) {
-					this.neighboursMap[ currentDeparture ] = [];
-				}
-
-				if ( this.neighboursMap[ currentDeparture ].indexOf( currentArrival ) < 0 ){
-					this.neighboursMap[ currentDeparture ].push( currentArrival  );
-				}
-			}
-		},
-		
+		}
 	},
 	mounted: function(){
 		this.getTravelsData();
@@ -452,10 +461,55 @@ function Itinerary( pTransportationsList ){
 
 function tests(){
 
+	function launchTests() {
+
+		var colorOk = 'background: #222; color: #a7c93c';
+		var colorError = 'background: #222; color: #ec4d09';
+
+		console.time('Test #1');
+		var itinerary = processItinerary( "Geneva", "Stockholm", false, true );
+		if ( itinerary.transportationsList[1].departure === "Brussels" 
+			&& itinerary.transportationsList[2].departure === "Prague"
+			&& itinerary.transportationsList[3].departure === "Moscow"
+			&& itinerary.totalCost === 640
+			&& itinerary.duration.h === 14
+			&& itinerary.duration.m === 0 ){
+			console.log( "%c processedItinerary( \"Geneva\", \"Stockholm\", fastest ) is what's expected", colorOk );
+		}
+		else{
+			console.log( "%c Error, regression - processedItinerary( \"Geneva\", \"Stockholm\", fastest )", colorError );
+		}
+		console.timeEnd('Test #1');
+
+		console.time('Test #2');
+		itinerary = processItinerary( "Geneva", "Stockholm", true, false );
+		if ( itinerary.transportationsList[1].departure === "Brussels" 
+			&& itinerary.transportationsList[2].departure === "Amsterdam"
+			&& itinerary.transportationsList[3].departure === "Warsaw"
+			&& itinerary.totalCost === 110
+			&& itinerary.duration.h === 21
+			&& itinerary.duration.m === 0 ){
+			console.log( "%c processedItinerary( \"Geneva\", \"Stockholm\", cheapest ) is what's expected", colorOk );
+		}
+		else{
+			console.log( "%c Error, regression - processedItinerary( \"Geneva\", \"Stockholm\", cheapest )", colorError );
+		}
+		console.timeEnd('Test #2');
+
+	}
+
+	var travelsData;
+	function setTravelsData( pTravelsData ) {
+		travelsData = helpers.deepCopy( pTravelsData );
+		launchTests();
+	}
+
+	itineraryService.getTravelsData( setTravelsData );
+
 	function processItinerary( pDeparture, pArrival, sortByPrice, sortByTime ) {
 
 		var correctPathsContainerObject = {};
-		var neighboursMap = app.neighboursMap;
+		var neighboursMap = itineraryService.generateMap( travelsData );
 
 		itineraryService.findAllPathsFromAToB( 
 			pDeparture, pArrival, [], neighboursMap, correctPathsContainerObject);
@@ -467,8 +521,6 @@ function tests(){
 		var cacheContainer = {};
 		cacheContainer.cheapestTransportations= [];
 		cacheContainer.fastestTransportations= [];
-
-		var travelsData = app.travelsData;
 
 		var processedItinerary = 
 			new Itinerary( 
@@ -482,36 +534,4 @@ function tests(){
 
 	}
 
-	var colorOk = 'background: #222; color: #a7c93c';
-	var colorError = 'background: #222; color: #ec4d09';
-
-	console.time('Test #1');
-	var itinerary = processItinerary( "Geneva", "Stockholm", false, true );
-	if ( itinerary.transportationsList[1].departure === "Brussels" 
-		&& itinerary.transportationsList[2].departure === "Prague"
-		&& itinerary.transportationsList[3].departure === "Moscow"
-		&& itinerary.totalCost === 640
-		&& itinerary.duration.h === 14
-		&& itinerary.duration.m === 0 ){
-		console.log( "%c processedItinerary( \"Geneva\", \"Stockholm\", fastest ) is what's expected", colorOk );
-	}
-	else{
-		console.log( "%c Error, regression - processedItinerary( \"Geneva\", \"Stockholm\", fastest )", colorError );
-	}
-	console.timeEnd('Test #1');
-
-	console.time('Test #2');
-	itinerary = processItinerary( "Geneva", "Stockholm", true, false );
-	if ( itinerary.transportationsList[1].departure === "Brussels" 
-		&& itinerary.transportationsList[2].departure === "Amsterdam"
-		&& itinerary.transportationsList[3].departure === "Warsaw"
-		&& itinerary.totalCost === 110
-		&& itinerary.duration.h === 21
-		&& itinerary.duration.m === 0 ){
-		console.log( "%c processedItinerary( \"Geneva\", \"Stockholm\", cheapest ) is what's expected", colorOk );
-	}
-	else{
-		console.log( "%c Error, regression - processedItinerary( \"Geneva\", \"Stockholm\", cheapest )", colorError );
-	}
-	console.timeEnd('Test #2');
 }
