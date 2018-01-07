@@ -13,7 +13,7 @@ body {
 
 #main-container {
 	width: 60%;
-	min-width: 250px;
+	min-width: 400px;
 	min-height: 100%;
 	margin: auto;
 	background-color: white;
@@ -141,11 +141,16 @@ body {
 @media (max-width: 500px) {
 
 	body {
-		font-size: 10px;
+		font-size: 12px;
+	}
+
+	#main-container {
+		width: 100%;
+		min-width: 250px;
 	}
 
 	.big-font {
-		font-size: 12px;
+		font-size: 14px;
 	}
 
 }
