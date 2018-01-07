@@ -30,7 +30,7 @@ httpClient = {
 
 		);
 	}
-}
+};
 
 helpers = {
 	deepCopy: function( object ) {
@@ -58,8 +58,7 @@ helpers = {
 		if ( sourceList ){
 			//push each different value
 			for ( var i = 0; i < sourceList.length; i++ ) {
-				if ( objectRef[list].indexOf( sourceList[i][sourceProperty] ) 
-						< 0 ){
+				if ( objectRef[list].indexOf( sourceList[i][sourceProperty] ) < 0 ){
 					objectRef[list].push( sourceList[i][sourceProperty] );
 				}
 			}
@@ -178,7 +177,7 @@ itineraryService = {
 							correctPaths[i][j], 
 							correctPaths[i][j + 1],
 							travelsData,
-							cacheContainer["cheapestTransportations"],
+							cacheContainer['cheapestTransportations'],
 							{ 
 								primary: "discountedCost",
 								secondary: "travelTime"
@@ -191,7 +190,7 @@ itineraryService = {
 							correctPaths[i][j], 
 							correctPaths[i][j + 1],
 							travelsData,
-							cacheContainer["fastestTransportations"],
+							cacheContainer['fastestTransportations'],
 							{
 								primary: "travelTime",
 								secondary: "discountedCost"
@@ -208,7 +207,7 @@ itineraryService = {
 					currentAmount += bestTransportation.discountedCost;
 				}
 				if ( sortByTime ){
-					currentAmount += bestTransportation.travelTime
+					currentAmount += bestTransportation.travelTime;
 				}
 				currentItinerary.push( new Transportation(bestTransportation) );
 			}
@@ -240,8 +239,7 @@ itineraryService = {
 				currentTransportation.computeEffectiveCost();
 				currentTransportation.computeTravelTimeInMin();
 
-				if ( !bestDeal 
-					|| currentTransportation[propertiesToCompare.primary] < bestDeal[propertiesToCompare.primary] 
+				if ( !bestDeal || currentTransportation[propertiesToCompare.primary] < bestDeal[propertiesToCompare.primary] 
 					/* if both transportation are the same on the first element of comparison
 						we can then check the best on the another element of comparison */
 					|| ( currentTransportation[propertiesToCompare.primary] == bestDeal[propertiesToCompare.primary]
@@ -495,7 +493,7 @@ function Transportation( valuesObject ){
 		this.travelTime = parseInt( this.duration.h ) * 60  + parseInt( this.duration.m ); 
 	}
 
-}
+};
 
 function Itinerary( pTransportationsList ){
 
@@ -533,7 +531,7 @@ function Itinerary( pTransportationsList ){
 
 	}
 
-}
+};
 
 (function tests(){
 
