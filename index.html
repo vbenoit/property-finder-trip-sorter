@@ -31,14 +31,14 @@
 			</div>
 			<div id="form" v-if="displayForm" v-cloak>
 				<div id="from-container" v-if="travelsDataFetched">
-					<select id="from" v-model="currentDeparture">
+					<select id="from" class="big-font" v-model="currentDeparture">
 						<option value="0">from</option>
 						<option v-for="departure in departures" v-bind:value="departure" >{{departure}}
 						</option>
 					</select>
 				</div>
 				<div id="to-container" v-if="travelsDataFetched">
-					<select id="to" v-model="currentArrival">
+					<select id="to" class="big-font" v-model="currentArrival">
 						<option value="0">to</option>
 						<option v-for="arrival in arrivals" v-bind:value="arrival" >{{arrival}}
 						</option>
